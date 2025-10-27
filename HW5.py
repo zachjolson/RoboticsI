@@ -9,7 +9,6 @@ def skew(vec):
                             [-vec[1], vec[0], 0]])
     
     return skew_matrix
-
 def twist(v, k):
     full_twist = np.zeros((4,4))
 
@@ -17,9 +16,12 @@ def twist(v, k):
     full_twist[0:3, 3] = v
 
     return(full_twist)
-    
+def prismatic_twist(v):
+    full_twist = np.zeros((4,4))
+    if np.linalg.norm(v) != 0:
+        full_twist[0:3, 3] = v/np.linalg.norm(v)
 
-
+    return full_twist
 #############################################
 #Problem 1
 #############################################
@@ -123,7 +125,82 @@ T_6_dof_theta1_90 = robot_6_dof.FK(np.pi/2, 0, 0, 0, 0, 0)
 T_6_dof_theta3_90 = robot_6_dof.FK(0, 0, np.pi/2, 0, 0, 0)
 T_6_dof_theta4_90 = robot_6_dof.FK(0, 0, 0, np.pi/2, 0, 0)
 
-print("0 angle: \n", T_6_dof_zero)
-print("theta 1 = 90: \n", T_6_dof_theta1_90)
-print("theta 3 = 90: \n", T_6_dof_theta3_90)
-print("theta 4 = 90: \n", T_6_dof_theta4_90)
+# print("0 angle: \n", T_6_dof_zero)
+# print("theta 1 = 90: \n", T_6_dof_theta1_90)
+# print("theta 3 = 90: \n", T_6_dof_theta3_90)
+# print("theta 4 = 90: \n", T_6_dof_theta4_90)
+
+#############################################
+#Problem 4
+#############################################
+class Polar_Manipulator:
+    def __init__(self):
+        self.k1 = np.array([0, 0, 1])
+        self.k2 = np.array([0, 1, 0])
+        self.q1 = np.array([0, 0, 0])
+        self.q2 = np.array([0, 0, 0])
+        self.T_0_0 = np.array([[0,0,1,0], [1,0,0,1], [0,1,0,0], [0,0,0,1]])
+    def FK(self, theta1, d2):
+        v1 = np.cross(self.q1, self.k1)
+        v2 = d2 * self.k2
+
+        twist1 = twist(v1, self.k1)
+        twist2 = prismatic_twist(v2)
+
+        transform = expm(twist1*theta1) @ expm(twist2 * d2) @ self.T_0_0
+
+        return transform
+    
+robot = Polar_Manipulator()
+T_0_0 = robot.FK(0, 0)
+T_90_0 = robot.FK(np.pi/2,0)
+T_0_2 = robot.FK(0, 0.2)
+
+# print("zero = \n", T_0_0)
+# print("90 deg = \n", T_90_0)
+# print("0.2 forward = \n", T_0_2)
+
+#############################################
+#Problem 5
+#############################################
+class SCARA_Robot:
+    def __init__(self):
+        a1 = 1
+        a2 = 0.9
+        self.q1 = np.array([0, 0, 0])
+        self.q2 = np.array([a1, 0, 0])
+        self.q3 = np.array([a1+a2, 0, 0])
+        self.q4 = np.array([a1+a2, 0, 0])
+        self.k1 = np.array([0, 0, 1])
+        self.k2 = np.array([0, 0, 1])
+        self.k3 = np.array([0, 0, -1])
+        self.k4 = np.array([0,0,-1])
+        self.T_zero_config = np.array([[1,0,0,a1+a2], [0,-1,0,0], [0,0,-1,-1.2],[0,0,0,1]]) 
+    def FK(self, theta1, theta2, d3, theta4):
+        v1 = np.cross(self.q1, self.k1)
+        v2 = np.cross(self.q2, self.k2)
+        v3 = d3 * self.k3
+        v4 = np.cross(self.q4, self.k4)
+
+        twist1 = twist(v1,self.k1)
+        twist2 = twist(v2, self.k2)
+        twist3 = prismatic_twist(v3)
+        twist4 = twist(v4, self.k4)
+
+        forward_kinematics = expm(twist1 * theta1) @ expm(twist2 * theta2) @ expm(twist3 * d3) @ expm(twist4 * theta4) @ self.T_zero_config
+
+        return forward_kinematics
+    
+
+robot = SCARA_Robot()
+T_0 = robot.FK(0, 0, 0, 0)
+T_theta1_90 = robot.FK(np.pi/2, 0, 0, 0)
+T_theta2_90 = robot.FK(0, np.pi/2, 0, 0)
+T_d3_1 = robot.FK(0, 0, -0.1, 0)
+T_theta4_90 = robot.FK(0, 0, 0, np.pi/2)
+
+print("zero config: \n", T_0)
+print("theta1 = 90: \n", T_theta1_90)
+print("theta2 = 90: \n", T_theta2_90)
+print("d3 = -0.1: \n", T_d3_1)
+print("theta4 = 90: \n", T_theta4_90)
