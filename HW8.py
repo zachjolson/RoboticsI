@@ -190,23 +190,23 @@ J4 = np.array([[8, -2, 0, 0],
                [0, 0, 0, 0],
                [0, 0, 0, 0]])
 
-u1, s1, v1 = np.linalg.svd(J1)
-u2, s2, v2 = np.linalg.svd(J2)
-u3, s3, v3 = np.linalg.svd(J3)
-u4, s4, v4 = np.linalg.svd(J4)
+u1, s1, v1 = np.linalg.svd(J1, full_matrices=True)
+u2, s2, v2 = np.linalg.svd(J2, full_matrices=True)
+u3, s3, v3 = np.linalg.svd(J3, full_matrices=True)
+u4, s4, v4 = np.linalg.svd(J4, full_matrices=True)
 
 print("u1 is: \n", u1)
 print("s1 is: \n", s1)
-print("v1 is: \n", v1)
+print("v1 is: \n", v1.T)
 
 print("u2 is: \n", u2)
 print("s2 is: \n", s2)
-print("v2 is: \n", v2)
+print("v2 is: \n", v2.T)
 
 print("u3 is: \n", u3)
 print("s3 is: \n", s3)
-print("v3 is: \n", v3)
+print("v3 is: \n", v3.T)
 
 print("u4 is: \n", u4)
 print("s4 is: \n", s4)
-print("v4 is: \n", v4)
+print("v4 is: \n", v4.T)
